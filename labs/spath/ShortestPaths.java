@@ -69,6 +69,7 @@ public class ShortestPaths {
 	
     	MinHeap<VertexAndDist> pq = 
     			new MinHeap<VertexAndDist>(g.getNumVertices(), ticker);
+    	ticker.tick();
 	
     	//
     	// Put all vertices into the heap, infinitely far from start.
@@ -80,6 +81,7 @@ public class ShortestPaths {
     		Decreaser<VertexAndDist> d = pq.insert(new VertexAndDist(v, inf));
     		handles.put(v, d);
     		parentEdges.put(v, null);
+    		ticker.tick(3);
     	}
 	
     	//
@@ -93,6 +95,7 @@ public class ShortestPaths {
     	Decreaser<VertexAndDist> startHandle = handles.get(startVertex);
     	VertexAndDist vd = startHandle.getValue();
     	startHandle.decrease(new VertexAndDist(vd.vertex, 0));
+    	ticker.tick(3);
 	
     	//
     	// OK, now it's up to you!
@@ -100,6 +103,26 @@ public class ShortestPaths {
     	// recording the parent edges of each vertex in parentEdges.
     	// FIXME
     	//
+    	
+    	while (!pq.isEmpty()) {
+    		VertexAndDist v = pq.extractMin();
+    		ticker.tick();
+    		
+    		for (Edge e : v.vertex.edgesFrom()) {
+    			Vertex vu = e.to;
+    			VertexAndDist u = handles.get(vu).getValue();
+    			ticker.tick(2);
+    			
+    			if (v.distance + weights.get(e) < u.distance) {
+    				u = new VertexAndDist (u.vertex, v.distance + weights.get(e));
+    				handles.get(u.vertex).decrease(u);
+    				parentEdges.put(u.vertex, e);
+    				ticker.tick(3);
+    			}
+    			
+    		}
+    		
+    	}
     }
     
     
@@ -116,7 +139,13 @@ public class ShortestPaths {
     	//
     	// FIXME: implement this using the parent edges computed in run()
     	//
-	
+    	Edge edge = parentEdges.get(endVertex);
+    	
+    	while (edge != null) {
+    		path.addFirst(edge);
+    		edge = parentEdges.get(edge.from);
+    	}
+    	
     	return path;
     }
     
